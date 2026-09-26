@@ -86,6 +86,16 @@ Run backend input-validation tests from `backend` with `python -m unittest disco
 
 A synthetic 1,000-row dataset is available for testing: [demo-emissions-1000.csv](public/demo-emissions-1000.csv). It covers 20 activity categories across five facilities and ten reporting months. The results view can export the mapped rows as a spreadsheet-friendly CSV.
 
+Three additional, real electricity-consumption datasets are provided under [`public/real-data`](public/real-data). Each contains 1,500 measured records in the app's CSV format. They are residential/utility measurements, not manufacturing-facility data; their purpose is to test importing, unit handling, mapping, charts, and exports with authentic observations.
+
+| File | Source and conversion |
+|---|---|
+| [real-household-electricity-1500.csv](public/real-data/real-household-electricity-1500.csv) | [UCI Individual Household Electric Power Consumption](https://doi.org/10.24432/C58K54), CC BY 4.0. One-minute average kW converted to interval kWh by dividing by 60. |
+| [real-appliance-electricity-1500.csv](public/real-data/real-appliance-electricity-1500.csv) | [UCI Appliances Energy Prediction](https://doi.org/10.24432/C5VC8G), CC BY 4.0. Measured appliance Wh converted to kWh by dividing by 1,000. |
+| [real-client-load-1500.csv](public/real-data/real-client-load-1500.csv) | [UCI ElectricityLoadDiagrams20112014](https://doi.org/10.24432/C58C86), CC BY 4.0. Fifteen-minute average kW converted to interval kWh by dividing by 4. |
+
+The real datasets are derived subsets with original timestamps and source identifiers retained. Rebuild them with `python scripts/prepare-real-datasets.py`; the script downloads the original UCI archives and selects the first 1,500 positive measurements from each. See the linked UCI pages for citations and full license details.
+
 ```csv
 facility,reporting_period,activity_name,quantity,unit
 Plant 01,2025-01,diesel fuel combustion,1200,L
