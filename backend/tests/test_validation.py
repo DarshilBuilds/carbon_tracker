@@ -26,17 +26,27 @@ class RequestValidationTests(unittest.TestCase):
             unit=" L ",
             facility=" Plant 01 ",
             reportingPeriod=" 2025-01 ",
+            zipCode=" 79355 ",
         )
 
         self.assertEqual(activity.activityName, "diesel")
         self.assertEqual(activity.unit, "L")
         self.assertEqual(activity.facility, "Plant 01")
         self.assertEqual(activity.reportingPeriod, "2025-01")
+        self.assertEqual(activity.zipCode, "79355")
 
     def test_matches_unit_aliases_and_rejects_wrong_dimensions(self):
         self.assertTrue(units_match("m³", "m3"))
         self.assertTrue(units_match("liters", "L"))
         self.assertFalse(units_match("kg", "L"))
+
+    def test_large_batch_request_validation(self):
+        activities = [
+            ActivityInput(activityName="electricity consumption", quantity=0.07, unit="kWh")
+            for _ in range(1500)
+        ]
+        req = MapRequest(activities=activities)
+        self.assertEqual(len(req.activities), 1500)
 
 
 if __name__ == "__main__":

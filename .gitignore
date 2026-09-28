@@ -24,13 +24,21 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# Editor directories and files
+# Editor and OS directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.lnk
+
+# Vite / test cache timestamps
+*.timestamp-*.mjs
+
+# Lockfile redundancy (project uses package-lock.json with npm)
+bun.lockb

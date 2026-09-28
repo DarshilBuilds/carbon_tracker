@@ -7,7 +7,13 @@ import numpy as np
 
 from epa_factors import EPA_FACTORS
 from schemas import ActivityInput, MapRequest
-from unit_validation import units_match
+from unit_validation import (
+    can_convert_unit,
+    convert_quantity,
+    get_direct_emissions_multiplier,
+    is_direct_emissions_unit,
+    units_match,
+)
 
 app = FastAPI(title="Carbon Compass API")
 
@@ -39,21 +45,94 @@ def health():
 
 @app.post("/api/map")
 def map_activities(req: MapRequest):
+    if not req.activities:
+        return []
+
     names = [a.activityName for a in req.activities]
-    embeddings = model.encode(names, normalize_embeddings=True)
-    sims = embeddings @ EPA_EMBEDDINGS.T
+    unique_names = list(dict.fromkeys(names))
+    unique_embeddings = model.encode(unique_names, batch_size=64, normalize_embeddings=True)
+    unique_sims = unique_embeddings @ EPA_EMBEDDINGS.T
+    name_to_sims = {name: unique_sims[k] for k, name in enumerate(unique_names)}
 
     results = []
     for i, activity in enumerate(req.activities):
-        best_idx = int(np.argmax(sims[i]))
-        best_sim = float(sims[i][best_idx])
+        sims_i = name_to_sims[activity.activityName]
+
+        # 1. Direct GHG emissions case (e.g. Metric Tons CO2e, kg CO2e)
+        if activity.unit and is_direct_emissions_unit(activity.unit):
+            mult = get_direct_emissions_multiplier(activity.unit)
+            calc_emissions = round(activity.quantity * mult, 2)
+
+            best_idx = int(np.argmax(sims_i))
+            best_sim = float(sims_i[best_idx])
+            matched_name = EPA_FACTORS[best_idx]["activity"]
+            confidence = max(85, round(max(0.0, min(1.0, best_sim)) * 100))
+
+            results.append({
+                "userActivity": activity.activityName,
+                "matchedEpaActivity": f"{matched_name} (Direct GHG Emissions)",
+                "emissionFactor": mult,
+                "emissionFactorUnit": f"kg CO2e/{activity.unit}",
+                "confidenceScore": confidence,
+                "quantity": activity.quantity,
+                "quantityUnit": activity.unit,
+                "unitAssumed": False,
+                "facility": activity.facility,
+                "reportingPeriod": activity.reportingPeriod,
+                "zipCode": activity.zipCode,
+                "calculatedEmissions": calc_emissions,
+            })
+            continue
+
+        # 2. Activity with standard activity unit
+        best_idx = int(np.argmax(sims_i))
         factor = EPA_FACTORS[best_idx]
         expected_unit = factor["unit"].rsplit("/", maxsplit=1)[-1]
-        if activity.unit and not units_match(activity.unit, expected_unit):
-            raise HTTPException(
-                status_code=422,
-                detail=f"{activity.activityName} expects {expected_unit}, but the uploaded unit is {activity.unit}.",
-            )
+
+        converted_qty, can_convert = (
+            convert_quantity(activity.quantity, activity.unit, expected_unit)
+            if activity.unit
+            else (activity.quantity, True)
+        )
+
+        if activity.unit and not can_convert:
+            # Check if any other factor in EPA_FACTORS is compatible and has reasonable similarity
+            compatible_indices = [
+                idx
+                for idx, f in enumerate(EPA_FACTORS)
+                if can_convert_unit(activity.unit, f["unit"].rsplit("/", maxsplit=1)[-1])
+            ]
+            if compatible_indices:
+                best_comp_subidx = int(np.argmax(sims_i[compatible_indices]))
+                best_comp_idx = compatible_indices[best_comp_subidx]
+                comp_sim = float(sims_i[best_comp_idx])
+                unconstrained_sim = float(sims_i[best_idx])
+                if comp_sim >= 0.20 and (unconstrained_sim - comp_sim) < 0.40:
+                    best_idx = best_comp_idx
+                    factor = EPA_FACTORS[best_idx]
+                    expected_unit = factor["unit"].rsplit("/", maxsplit=1)[-1]
+                    converted_qty, can_convert = convert_quantity(
+                        activity.quantity, activity.unit, expected_unit
+                    )
+
+        if activity.unit and not can_convert:
+            results.append({
+                "userActivity": activity.activityName,
+                "matchedEpaActivity": f"Skipped - Unit Mismatch (Expected {expected_unit})",
+                "emissionFactor": 0,
+                "emissionFactorUnit": expected_unit,
+                "confidenceScore": 0,
+                "quantity": activity.quantity,
+                "quantityUnit": activity.unit,
+                "unitAssumed": False,
+                "facility": activity.facility,
+                "reportingPeriod": activity.reportingPeriod,
+                "zipCode": activity.zipCode,
+                "calculatedEmissions": 0,
+            })
+            continue
+
+        best_sim = float(sims_i[best_idx])
         confidence = round(max(0.0, min(1.0, best_sim)) * 100)
 
         results.append({
@@ -67,7 +146,8 @@ def map_activities(req: MapRequest):
             "unitAssumed": activity.unit is None,
             "facility": activity.facility,
             "reportingPeriod": activity.reportingPeriod,
-            "calculatedEmissions": round(activity.quantity * factor["factor"], 2),
+            "zipCode": activity.zipCode,
+            "calculatedEmissions": round(converted_qty * factor["factor"], 2),
         })
 
     return results

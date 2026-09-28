@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { Header } from '@/components/Header';
-import { HeroSection } from '@/components/HeroSection';
 import { FileUploader } from '@/components/FileUploader';
 import { EmissionsSummary } from '@/components/EmissionsSummary';
 import { MappingResultsTable } from '@/components/MappingResultsTable';
@@ -33,9 +32,7 @@ const Index = () => {
       <Header apiConnected={status.isConnected} />
       
       <main>
-        <HeroSection />
-
-        <div id="upload-section" className="container mx-auto px-4 py-12 space-y-8">
+        <div id="upload-section" className="container mx-auto px-4 py-8 space-y-8">
           {/* Error display */}
           {error && (
             <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm animate-fade-in">

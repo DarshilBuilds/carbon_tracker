@@ -19,4 +19,6 @@ EPA_FACTORS = [
     {"activity": "District heating - natural gas boiler", "factor": 0.18, "unit": "kg CO2e/kWh"},
     {"activity": "Refrigerant use - HFC leakage", "factor": 1430.0, "unit": "kg CO2e/kg"},
     {"activity": "General industrial activity", "factor": 1.5, "unit": "kg CO2e/unit"},
+    {"activity": "Reported GHG emissions - direct facility calculation", "factor": 1.0, "unit": "kg CO2e/kg CO2e"},
+    {"activity": "Direct reported emissions - Metric Tons CO2e", "factor": 1000.0, "unit": "kg CO2e/MT CO2e"},
 ]

@@ -80,4 +80,34 @@ describe('parseCSV', () => {
     expect(csv).toContain('"Plant ""A""","2025-01","Steel, primary"');
     expect(csv).toContain('"2","kg","false"');
   });
+
+  it('converts compatible units accurately (e.g. MWh to kWh, gal to L, Mcf to m3)', () => {
+    // 2 MWh * 1000 kWh/MWh * 0.42 = 840 kg CO2e
+    const electricity = mapDemoActivity({
+      activityName: 'Electricity generation - grid average',
+      quantity: 2,
+      unit: 'MWh',
+    });
+    expect(electricity.calculatedEmissions).toBe(840);
+
+    // 100 gal * 3.78541 L/gal * 2.68 = 1014.49 kg CO2e
+    const diesel = mapDemoActivity({
+      activityName: 'Diesel fuel combustion - mobile sources',
+      quantity: 100,
+      unit: 'gal',
+    });
+    expect(diesel.calculatedEmissions).toBeCloseTo(1014.49, 1);
+  });
+
+  it('handles direct reported emissions in Metric Tons CO2e without crashing', () => {
+    const combustion = mapDemoActivity({
+      activityName: 'Combustion Equipment at Onshore Petroleum Facilities',
+      quantity: 542311.64,
+      unit: 'Metric Tons CO2e',
+    });
+
+    expect(combustion.calculatedEmissions).toBe(542311640);
+    expect(combustion.emissionFactor).toBe(1000);
+    expect(combustion.confidenceScore).toBeGreaterThanOrEqual(90);
+  });
 });

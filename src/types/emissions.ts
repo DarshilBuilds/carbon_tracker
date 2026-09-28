@@ -4,6 +4,7 @@ export interface ActivityInput {
   unit?: string;
   facility?: string;
   reportingPeriod?: string;
+  zipCode?: string;
 }
 
 export interface MappingResult {
@@ -17,6 +18,7 @@ export interface MappingResult {
   unitAssumed?: boolean;
   facility?: string;
   reportingPeriod?: string;
+  zipCode?: string;
   calculatedEmissions: number;
 }
 

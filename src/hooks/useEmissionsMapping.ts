@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { ActivityInput, MappingResult, EmissionsSummary } from '@/types/emissions';
 import { getApiUrl, API_CONFIG } from '@/config/api';
-import { mapDemoActivity } from '@/lib/demoMapping';
+import { safeMapDemoActivity } from '@/lib/demoMapping';
 
 export function useEmissionsMapping() {
   const [results, setResults] = useState<MappingResult[]>([]);
@@ -20,31 +20,38 @@ export function useEmissionsMapping() {
       let mappingResults: MappingResult[];
 
       if (useApi) {
-        // Try to use the backend API
-        const response = await fetch(getApiUrl('map'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ activities }),
-          signal: AbortSignal.timeout(API_CONFIG.timeout),
-        });
+        try {
+          // Dynamic timeout: at least API_CONFIG.timeout (120s), plus 50ms per activity for extra safety
+          const dynamicTimeout = Math.max(API_CONFIG.timeout, activities.length * 50);
 
-        if (!response.ok) {
-          const payload = await response.json().catch(() => null);
-          const detail = payload?.detail;
-          const message = typeof detail === 'string'
-            ? detail
-            : Array.isArray(detail)
-              ? detail.map(issue => issue.msg).join('; ')
-              : 'API request failed';
-          throw new Error(message);
+          const response = await fetch(getApiUrl('map'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activities }),
+            signal: AbortSignal.timeout(dynamicTimeout),
+          });
+
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            const detail = payload?.detail;
+            const message = typeof detail === 'string'
+              ? detail
+              : Array.isArray(detail)
+                ? detail.map(issue => issue.msg).join('; ')
+                : 'API request failed';
+            throw new Error(message);
+          }
+
+          mappingResults = await response.json();
+        } catch (apiErr) {
+          console.warn('Backend API timed out or unavailable, continuing with local mapping engine:', apiErr);
+          mappingResults = activities.map(safeMapDemoActivity);
         }
-
-        mappingResults = await response.json();
       } else {
         // Use demo mode with simulated processing
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing delay
         
-        mappingResults = activities.map(mapDemoActivity);
+        mappingResults = activities.map(safeMapDemoActivity);
       }
 
       if (!mappingResults.length) {

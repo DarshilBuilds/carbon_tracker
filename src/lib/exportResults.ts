@@ -4,6 +4,7 @@ const REPORT_HEADERS = [
   'facility',
   'reporting_period',
   'activity_name',
+  'zip_code',
   'quantity',
   'quantity_unit',
   'unit_assumed',
@@ -15,7 +16,7 @@ const REPORT_HEADERS = [
 ];
 
 function toCsvCell(value: string | number | boolean | undefined): string {
-  return `"${String(value ?? '').replaceAll('"', '""')}"`;
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
 }
 
 export function serializeResultsCsv(results: MappingResult[]): string {
@@ -23,6 +24,7 @@ export function serializeResultsCsv(results: MappingResult[]): string {
     result.facility,
     result.reportingPeriod,
     result.userActivity,
+    result.zipCode,
     result.quantity,
     result.quantityUnit,
     result.unitAssumed ?? false,

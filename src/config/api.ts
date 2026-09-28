@@ -13,8 +13,8 @@ export const API_CONFIG = {
     epaFactors: '/api/epa-factors',
   },
   
-  // Request timeout in milliseconds
-  timeout: 30000,
+  // Request timeout in milliseconds (120 seconds to safely accommodate large batch ML embeddings on CPU)
+  timeout: 120000,
 };
 
 export const getApiUrl = (endpoint: keyof typeof API_CONFIG.endpoints): string => {

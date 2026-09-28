@@ -9,6 +9,7 @@ class ActivityInput(BaseModel):
     unit: str | None = Field(default=None, min_length=1)
     facility: str | None = Field(default=None, min_length=1)
     reportingPeriod: str | None = Field(default=None, min_length=1)
+    zipCode: str | None = Field(default=None, min_length=1)
 
 
 class MapRequest(BaseModel):
