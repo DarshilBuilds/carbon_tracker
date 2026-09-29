@@ -54,7 +54,7 @@ export function MappingResultsTable({ results }: MappingResultsTableProps) {
   };
 
   return (
-    <Card className="gradient-card shadow-card">
+    <Card className="gradient-card shadow-card hover-lift card-glow transition-all duration-300">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>

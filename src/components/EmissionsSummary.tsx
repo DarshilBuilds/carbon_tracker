@@ -55,21 +55,22 @@ export function EmissionsSummary({ summary }: EmissionsSummaryProps) {
       {stats.map((stat, index) => (
         <Card 
           key={stat.label} 
-          className="gradient-card shadow-card hover:shadow-card-hover transition-all duration-300 animate-fade-in"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className="gradient-card shadow-card hover-lift card-glow group relative overflow-hidden transition-all duration-300 animate-fade-in border border-border/80"
+          style={{ animationDelay: `${index * 80}ms` }}
         >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent group-hover:via-primary transition-all duration-500" />
           <CardContent className="p-4 min-w-0">
             <div className="flex items-start justify-between">
-              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
+              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-2xs`}>
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="min-w-0 break-words text-xl font-display font-bold text-foreground">
+              <p className="min-w-0 break-words text-xl font-display font-bold text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
                 {stat.value}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {stat.unit && <span className="font-medium">{stat.unit} · </span>}
+                {stat.unit && <span className="font-medium text-foreground/80">{stat.unit} · </span>}
                 {stat.label}
               </p>
             </div>

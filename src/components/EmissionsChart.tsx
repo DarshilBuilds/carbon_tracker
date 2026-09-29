@@ -59,7 +59,7 @@ export function EmissionsChart({ results }: EmissionsChartProps) {
   return (
     <div className="grid min-w-0 md:grid-cols-2 gap-6">
       {/* Bar Chart */}
-      <Card className="gradient-card shadow-card min-w-0">
+      <Card className="gradient-card shadow-card hover-lift card-glow transition-all duration-300 min-w-0">
         <CardHeader>
           <CardTitle className="font-display flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-primary" />
@@ -109,7 +109,7 @@ export function EmissionsChart({ results }: EmissionsChartProps) {
       </Card>
 
       {/* Pie Chart */}
-      <Card className="gradient-card shadow-card min-w-0">
+      <Card className="gradient-card shadow-card hover-lift card-glow transition-all duration-300 min-w-0">
         <CardHeader>
           <CardTitle className="font-display">Emission Distribution</CardTitle>
           <CardDescription>

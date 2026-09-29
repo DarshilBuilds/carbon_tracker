@@ -29,14 +29,22 @@ export function Header({ apiConnected }: HeaderProps) {
 
         <div className="flex items-center gap-2">
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all shadow-xs border ${
               apiConnected
-                ? 'bg-success/10 text-success'
-                : 'bg-warning/10 text-warning'
+                ? 'bg-success/10 text-success border-success/30 shadow-[0_0_15px_rgba(34,197,94,0.15)]'
+                : 'bg-warning/10 text-warning border-warning/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
             }`}
           >
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                apiConnected ? 'animate-ping bg-success' : 'animate-pulse bg-warning'
+              }`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                apiConnected ? 'bg-success' : 'bg-warning'
+              }`} />
+            </span>
             <Zap className="w-3 h-3" />
-            {apiConnected ? 'API Connected' : 'Demo Mode'}
+            <span>{apiConnected ? 'Neural Backend Live' : 'Demo Mode Active'}</span>
           </div>
         </div>
       </div>

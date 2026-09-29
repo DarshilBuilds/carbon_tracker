@@ -23,7 +23,8 @@ import {
   Menu,
   X,
   Play,
-  Video
+  Video,
+  ExternalLink,
 } from 'lucide-react';
 import {
   Accordion,
@@ -38,7 +39,7 @@ import { Badge } from '@/components/ui/badge';
    ========================================================================= */
 
 export const PLACEHOLDER_LINK = 'https://drive.google.com/file/d/1mJDx824gn51HnSGhMnw96GMj5L6xQry4/view?usp=sharing';
-export const DEMO_VIDEO_SRC = ''; // Put your video URL or path here (e.g. '/demo-video.mp4')
+export const DEMO_VIDEO_SRC = 'https://drive.google.com/file/d/1RQpC3cbL8r9ILkGE85hUh91sbNSWXzsy/view?usp=sharing';
 
 export const COPY = {
   tagline: 'Turn messy plant data into carbon reports.',
@@ -246,6 +247,12 @@ export const COPY = {
 
 export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+
+  const isGoogleDrive = DEMO_VIDEO_SRC.includes('drive.google.com');
+  const googleDrivePreview = isGoogleDrive
+    ? DEMO_VIDEO_SRC.replace(/\/view(\?.*)?$/, '/preview')
+    : '';
 
   const scrollTo = (id: string) => {
     setMobileMenuOpen(false);
@@ -374,8 +381,8 @@ export default function Landing() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center space-y-6">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-medium text-primary">
-                <Sparkles className="w-4 h-4 text-primary" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-medium text-primary border border-primary/20 animate-float shadow-2xs">
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <span>{COPY.hero.eyebrow}</span>
               </div>
 
@@ -401,7 +408,7 @@ export default function Landing() {
                 ].map((feature) => (
                   <div
                     key={feature}
-                    className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border shadow-xs text-sm font-medium text-foreground"
+                    className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border shadow-2xs text-sm font-medium text-foreground hover-lift card-glow transition-all duration-200 cursor-default"
                   >
                     <Leaf className="w-4 h-4 text-success" />
                     <span>{feature}</span>
@@ -414,7 +421,7 @@ export default function Landing() {
                 <div className="flex flex-wrap items-center justify-center gap-4">
                   <Link
                     to="/app"
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-md shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span>{COPY.hero.primaryCta}</span>
                     <ArrowRight className="h-4 w-4" />
@@ -424,7 +431,7 @@ export default function Landing() {
                     href={PLACEHOLDER_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors shadow-xs"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-muted/50 hover-lift transition-all shadow-xs"
                   >
                     <Github className="h-4 w-4 text-muted-foreground" />
                     <span>{COPY.hero.secondaryCta}</span>
@@ -433,18 +440,18 @@ export default function Landing() {
 
                 <button
                   onClick={() => scrollTo('demo-video')}
-                  className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors text-sm font-medium pt-1"
+                  className="group inline-flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors text-sm font-medium pt-1"
                 >
-                  <Play className="w-4 h-4 fill-primary/20" />
+                  <Play className="w-4 h-4 fill-primary/20 group-hover:scale-110 transition-transform" />
                   <span>Watch Demo Video</span>
-                  <ArrowDown className="w-4 h-4" />
+                  <ArrowDown className="w-4 h-4 animate-bounce" />
                 </button>
               </div>
             </div>
 
             {/* Demo Video Section */}
             <div id="demo-video" className="mt-14 max-w-5xl mx-auto space-y-4">
-              <div className="relative rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+              <div className="relative rounded-2xl border border-border bg-card shadow-card hover-lift card-glow transition-all duration-300 overflow-hidden">
                 {/* Window Header Bar */}
                 <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -454,6 +461,18 @@ export default function Landing() {
                     <span className="text-xs font-mono text-muted-foreground ml-2">Carbon Compass · Product Demo</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    {isGoogleDrive && (
+                      <a
+                        href={DEMO_VIDEO_SRC}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground bg-background px-2.5 py-0.5 rounded-full border border-border transition-colors hover:border-primary/40"
+                        title="Open full video in Google Drive"
+                      >
+                        <span>Open Drive</span>
+                        <ExternalLink className="w-3 h-3 text-primary" />
+                      </a>
+                    )}
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-background px-2.5 py-0.5 rounded-full border border-border">
                       <Play className="w-3 h-3 text-primary fill-primary" />
                       Walkthrough
@@ -462,19 +481,44 @@ export default function Landing() {
                 </div>
 
                 {/* Video Player or Placeholder */}
-                <div className="relative aspect-video w-full bg-muted/20 flex items-center justify-center">
+                <div className="relative aspect-video w-full bg-muted/20 flex items-center justify-center overflow-hidden">
                   {DEMO_VIDEO_SRC ? (
-                    <video
-                      controls
-                      playsInline
-                      className="w-full h-full object-cover"
-                      src={DEMO_VIDEO_SRC}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    isGoogleDrive ? (
+                      <iframe
+                        src={googleDrivePreview}
+                        title="Carbon Compass Product Demo"
+                        className="w-full h-full border-0"
+                        allow="autoplay; fullscreen"
+                        allowFullScreen
+                      />
+                    ) : !videoError ? (
+                      <video
+                        controls
+                        playsInline
+                        className="w-full h-full object-cover"
+                        src={DEMO_VIDEO_SRC}
+                        onError={() => setVideoError(true)}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto space-y-4">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-glow hover:scale-105 transition-transform duration-300 animate-pulse-glow cursor-pointer">
+                          <Play className="w-8 h-8 ml-1 fill-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-foreground">
+                            Product Demo Video
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                            Watch how Carbon Compass maps messy shop-floor CSV logs to EPA emission factors and calculates CO₂e totals.
+                          </p>
+                        </div>
+                      </div>
+                    )
                   ) : (
                     <div className="flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-glow">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-glow hover:scale-105 transition-transform duration-300 animate-pulse-glow cursor-pointer">
                         <Play className="w-8 h-8 ml-1 fill-primary" />
                       </div>
                       <div>
@@ -484,9 +528,6 @@ export default function Landing() {
                         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                           Watch how Carbon Compass maps messy shop-floor CSV logs to EPA emission factors and calculates CO₂e totals.
                         </p>
-                      </div>
-                      <div className="text-[11px] font-mono text-muted-foreground bg-muted/70 px-3 py-1.5 rounded-lg border border-border/60">
-                        Ready for your video · Add file to <span className="text-primary font-semibold">/public/demo-video.mp4</span> or set <span className="text-primary font-semibold">DEMO_VIDEO_SRC</span>
                       </div>
                     </div>
                   )}
@@ -534,9 +575,9 @@ export default function Landing() {
               {COPY.problem.cards.map((card, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-border bg-card p-7 shadow-xs hover:border-primary/40 transition-colors"
+                  className="rounded-xl border border-border bg-card p-7 shadow-xs hover-lift card-glow transition-all duration-300"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary mb-4 font-mono text-xs font-bold">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary mb-4 font-mono text-xs font-bold shadow-2xs">
                     0{idx + 1}
                   </div>
                   <h3 className="font-display text-base font-bold text-foreground mb-2">
@@ -572,7 +613,7 @@ export default function Landing() {
               {COPY.howItWorks.map((step, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-border bg-background p-6 space-y-3 shadow-xs"
+                  className="rounded-xl border border-border bg-background p-6 space-y-3 shadow-xs hover-lift card-glow transition-all duration-300"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xl font-bold text-primary">

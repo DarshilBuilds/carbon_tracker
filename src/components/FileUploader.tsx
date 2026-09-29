@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle2, X, Leaf, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, X, Leaf, Eye, EyeOff, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ export function FileUploader({ onUpload, isProcessing }: FileUploaderProps) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewCount, setPreviewCount] = useState(5);
+  const [isLoadingSample, setIsLoadingSample] = useState(false);
 
   const handleFile = useCallback((file: File) => {
     setFileName(file.name);
@@ -116,8 +117,27 @@ export function FileUploader({ onUpload, isProcessing }: FileUploaderProps) {
     setPreviewCount(5);
   }, []);
 
+  const handleLoadSample = useCallback(async (path: string, displayName: string) => {
+    try {
+      setIsLoadingSample(true);
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`Could not load dataset from ${path}`);
+      const text = await res.text();
+      const file = new File([text], displayName, { type: 'text/csv' });
+      handleFile(file);
+    } catch (err: any) {
+      setValidation({
+        isValid: false,
+        errors: [{ row: 0, field: 'file', message: `Sample load error: ${err.message}` }],
+        validRows: [],
+      });
+    } finally {
+      setIsLoadingSample(false);
+    }
+  }, [handleFile]);
+
   return (
-    <Card className="gradient-card shadow-card hover:shadow-card-hover transition-shadow duration-300">
+    <Card className="gradient-card shadow-card hover-lift card-glow transition-all duration-300">
       <CardHeader>
         <CardTitle className="font-display flex items-center gap-2">
           <Upload className="w-5 h-5 text-primary" />
@@ -128,6 +148,50 @@ export function FileUploader({ onUpload, isProcessing }: FileUploaderProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Quick Demo Datasets Presets */}
+        <div className="p-3 bg-muted/40 rounded-xl border border-border/70 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
+              <span>Instant Demo Datasets</span>
+            </div>
+            <span className="text-[10px] uppercase font-mono text-muted-foreground tracking-wider">
+              1-Click Load
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleLoadSample('/demo-data/demo-emissions-1000.csv', 'demo-emissions-1000.csv')}
+              disabled={isProcessing || isLoadingSample}
+              className="text-xs bg-card hover:bg-primary/10 hover:border-primary/40 border border-border px-2.5 py-1.5 rounded-lg font-medium text-foreground transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>🏭 Factory Activities (1,000 rows)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLoadSample('/real-data/real-civitas-permian-basin-2023.csv', 'real-civitas-permian-basin-2023.csv')}
+              disabled={isProcessing || isLoadingSample}
+              className="text-xs bg-card hover:bg-primary/10 hover:border-primary/40 border border-border px-2.5 py-1.5 rounded-lg font-medium text-foreground transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>🛢️ EPA Civitas Basin (GHGRP)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLoadSample('/real-data/real-household-electricity-1500.csv', 'real-household-electricity-1500.csv')}
+              disabled={isProcessing || isLoadingSample}
+              className="text-xs bg-card hover:bg-primary/10 hover:border-primary/40 border border-border px-2.5 py-1.5 rounded-lg font-medium text-foreground transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>⚡ Meter Load (1,500 rows)</span>
+            </button>
+          </div>
+          {isLoadingSample && (
+            <div className="flex items-center gap-2 text-xs text-primary pt-1 animate-fade-in">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Fetching sample data and parsing in browser...</span>
+            </div>
+          )}
+        </div>
         {/* Drop Zone */}
         <div
           onDragEnter={handleDrag}
@@ -316,25 +380,37 @@ export function FileUploader({ onUpload, isProcessing }: FileUploaderProps) {
 
             {/* Submit Button */}
             {validation.isValid && (
-              <Button 
-                onClick={handleSubmit} 
-                variant="hero" 
-                size="lg" 
-                className="w-full"
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <span className="animate-spin">⟳</span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Leaf className="w-4 h-4" />
-                    Map to EPA Factors
-                  </>
+              <div className="space-y-3 pt-1">
+                <Button 
+                  onClick={handleSubmit} 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full relative overflow-hidden group shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99] font-medium"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <div className="flex items-center gap-2">
+                      <Leaf className="w-4 h-4 text-primary-foreground animate-spin" />
+                      <span>Vectorizing & Matching Activities...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Leaf className="w-4 h-4 text-primary-foreground group-hover:rotate-12 transition-transform duration-200" />
+                      <span>Map to EPA Emission Factors</span>
+                    </div>
+                  )}
+                </Button>
+                {isProcessing && (
+                  <div className="space-y-1.5 animate-fade-in p-2 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="w-full bg-primary/10 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-primary h-full w-1/2 animate-scan-line rounded-full" />
+                    </div>
+                    <p className="text-[11px] text-center text-muted-foreground animate-pulse-subtle">
+                      Running 384-dimensional cosine similarity embeddings via Sentence-Transformers...
+                    </p>
+                  </div>
                 )}
-              </Button>
+              </div>
             )}
           </div>
         )}

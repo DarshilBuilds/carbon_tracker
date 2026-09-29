@@ -42,3 +42,7 @@ Thumbs.db
 
 # Lockfile redundancy (project uses package-lock.json with npm)
 bun.lockb
+
+# Large media files (hosted externally via Google Drive)
+public/demo-video.mp4
+*.mp4
